@@ -1,0 +1,7 @@
+notes
+env
+tests
+make_uml.py
+*.puml
+__pycache__
+*.svg
