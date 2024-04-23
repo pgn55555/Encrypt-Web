@@ -1,44 +1,69 @@
-from src.input import Input
-from src.file import File
-from src.caesar import Caesar
-from src.vigenere import Vigenere
-from src.vernam import Vernam
+from flask import Flask, render_template, send_file, request
 
-class Main:
-    def __init__(self) -> None:
-        self.program_input = Input()
-        self.program_file = File(self.program_input.get_path())
-        self.algo = self.program_input.get_algo()
-        self.action = self.program_input.get_action()
-        self.key = self.program_input.get_key()
-        self.hackermode = self.program_input.get_hack()
-    
-    def start(self) -> None:
-        if self.algo == 'caesar':
-            algo = Caesar()
-            if self.action == 'encrypt':
-                algo.encrypt(self.program_file, self.key)
-            elif not self.hackermode:
-                algo.decrypt(self.program_file, self.key)
-            else:
-                algo.hack(self.program_file)
-        
-        if self.algo == 'vigenere':
-            algo = Vigenere(self.program_file.get_max() + 1)
-            if self.action == 'encrypt':
-                algo.encrypt(self.program_file, self.key)
-            else:
-                algo.decrypt(self.program_file, self.key)
-        
-        if self.algo == 'vernam':
-            algo = Vernam(self.program_file.get_max() + 1)
-            if self.action == 'encrypt':
-                algo.encrypt(self.program_file, self.key)
-            else:
-                algo.decrypt(self.program_file, self.key)
+import os
 
+from src.main import Main
 
-if __name__ == "__main__":
-    program = Main()
+app = Flask(__name__)
+app.secret_key = "ItIsASecret"
+
+def delete_files() -> None:
+    for filename in os.listdir("files"):
+        file_path = os.path.join("files", filename)
+        os.remove(file_path)
+
+@app.route("/")
+def encrypt():
+    delete_files()
+    return render_template('encrypt.html')
+
+@app.route("/decrypt")
+def decrypt():
+     delete_files()
+     return render_template('decrypt.html')
+
+@app.route("/hackermode")
+def hackermode():
+     delete_files()
+     return render_template('hackermode.html')
+
+@app.route('/submit_encrypt', methods=['POST'])
+def submit_encrypt():
+    uploaded_file = request.files['fileInput']
+    file_path = os.path.join("files", uploaded_file.filename)
+    uploaded_file.save(file_path)
+
+    algo = request.form['selectAlgo']
+    key = request.form['keyAlgo']
+    if key == "":
+        key = "generate"
+
+    program = Main([file_path, algo, 'encrypt', key])
     program.start()
-    print('Done!')
+    
+    return send_file(file_path, as_attachment=True)
+
+@app.route('/submit_decrypt', methods=['POST'])
+def submit_decrypt():
+    uploaded_file = request.files['fileInput']
+    file_path = os.path.join("files", uploaded_file.filename)
+    uploaded_file.save(file_path)
+
+    algo = request.form['selectAlgo']
+    key = request.form['keyAlgo']
+
+    program = Main([file_path, algo, 'decrypt', key])
+    program.start()
+
+    return send_file(file_path, as_attachment=True)
+
+@app.route('/submit_hackermode', methods=['POST'])
+def submit_hackermode():
+    uploaded_file = request.files['fileInput']
+    file_path = os.path.join("files", uploaded_file.filename)
+    uploaded_file.save(file_path)
+
+    program = Main([file_path, 'caesar', 'decrypt', 'hackermode'])
+    program.start()
+    
+    return send_file(file_path, as_attachment=True)
