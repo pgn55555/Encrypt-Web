@@ -1,7 +1,4 @@
-notes
-env
-tests
-make_uml.py
-*.puml
+main_cli.py
+.env
 __pycache__
 *.svg

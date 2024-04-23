@@ -1,4 +1,3 @@
-from sys import argv
 from os import path
 from random import randint
 
@@ -24,7 +23,7 @@ class Action:
     def get_name(self) -> str:
         return self.mode_action
 
-class Input:
+class Config:
     def __get_length_file(self) -> int:
         with open(self.get_path(), 'rb') as file:
             length = len(file.read())
@@ -59,11 +58,6 @@ class Input:
                     raise AttributeError('Cannot generate key when you decrypt')
                 self.raw_data[3] = self.__genetate_key(\
                     self.parse_data['algo'].get_name())
-                print(f'Your key: {self.raw_data[3]}')
-            """    
-            elif self.__get_length_file() < len(self.raw_data[3]) and\
-                self.raw_data[1] != 'caesar':
-                raise AttributeError('Too long key')"""
             
             self.parse_data['key'] = self.raw_data[3]
             return
@@ -73,12 +67,9 @@ class Input:
             raise AttributeError('You are not hacker')
         self.parse_data['hackermode'] = True
 
-    def __get_input(self) -> None:
-        self.raw_data = argv[1:]
+    def __init__(self, raw_data: list) -> None:
+        self.raw_data = raw_data
         self.__parse_and_validation()
-
-    def __init__(self) -> None:
-        self.__get_input()
     
     def get_path(self) -> str:
         return self.parse_data['path']
